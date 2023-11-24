@@ -4,7 +4,7 @@ const uploadRoutes = require("./uploadRoutes");
 const videoRoutes = require("./videoRoutes");
 const bookRoutes = require("./bukuRoutes");
 const authRoutes = require("./authRoutes");
-
+const userRoutes = require("./userRoutes");
 route.get("/", (req, res) => {
   const htmlResponse = `
   <!DOCTYPE html>
@@ -61,11 +61,12 @@ route.get("/", (req, res) => {
     </body>
   </html>
 `;
-res.send(htmlResponse);
+  res.send(htmlResponse);
 });
 
 route.use("/uploads", uploadRoutes);
 route.use("/videos", videoRoutes);
 route.use("/books", bookRoutes);
 route.use("/auth", authRoutes);
+route.use("/users", userRoutes);
 module.exports = route;
