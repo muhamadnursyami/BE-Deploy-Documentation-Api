@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const bukuSchema = new mongoose.Schema({
+const bookSchema = new mongoose.Schema({
   title: {
     type: String,
   },
@@ -32,4 +32,4 @@ const bukuSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Buku", bukuSchema);
+module.exports = mongoose.model("Book", bookSchema);
