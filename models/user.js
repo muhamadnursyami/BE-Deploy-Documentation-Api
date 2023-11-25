@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  namaLengkap: {
+  nama: {
     type: String,
     required: [true, "Nama lengkap harus diisi"],
   },

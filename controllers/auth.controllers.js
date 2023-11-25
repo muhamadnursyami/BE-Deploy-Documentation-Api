@@ -49,7 +49,7 @@ module.exports = {
   register: async (req, res) => {
     try {
       const {
-        namaLengkap,
+        nama,
         jenisKelamin,
         email,
         password,
@@ -59,13 +59,7 @@ module.exports = {
         bio,
       } = req.body;
 
-      if (
-        !namaLengkap ||
-        !jenisKelamin ||
-        !email ||
-        !password ||
-        !confirmPassword
-      ) {
+      if (!nama || !jenisKelamin || !email || !password || !confirmPassword) {
         return res.status(400).json({
           message: "Tolong isi semua inputan",
         });
@@ -77,7 +71,7 @@ module.exports = {
           message: "Email sudah terdaftar!",
         });
       }
-      if (password.length <= 8 && confirmPassword.length <= 8) {
+      if (password.length <= 7 && confirmPassword.length <= 7) {
         return res.status(400).json({
           message: "Password harus minimal 8 karakter",
         });
@@ -93,7 +87,7 @@ module.exports = {
       );
 
       const dataUsers = await User.create({
-        namaLengkap,
+        nama,
         jenisKelamin,
         email,
         password: hashPassword,
@@ -155,7 +149,7 @@ module.exports = {
   // registerAdmin: async (req, res) => {
   //   try {
   //     const {
-  //       namaLengkap,
+  //       nama,
   //       jenisKelamin,
   //       email,
   //       password,
@@ -166,7 +160,7 @@ module.exports = {
   //     } = req.body;
 
   //     if (
-  //       !namaLengkap ||
+  //       !nama ||
   //       !jenisKelamin ||
   //       !email ||
   //       !password ||
@@ -199,7 +193,7 @@ module.exports = {
   //     );
 
   //     const dataUsers = await User.create({
-  //       namaLengkap,
+  //       nama,
   //       jenisKelamin,
   //       email,
   //       password: hashPassword,
