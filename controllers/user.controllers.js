@@ -4,9 +4,11 @@ const User = require("../models/user");
 const cloudinary = require("../utils/cloudinary");
 
 module.exports = {
-  editProfileImage: async (req, res) => {
+  updateProfile: async (req, res) => {
     try {
       const { id } = req.params;
+      const { namaLengkap, jenisKelamin, noHp, email, bio, profileImage } =
+        req.body;
 
       // Mengunggah file baru ke Cloudinary
       const result = await cloudinary.uploader
@@ -15,13 +17,25 @@ module.exports = {
             console.error(error);
             res.status(500).json({ error: "Internal Server Error" });
           } else {
-            // Mengupdate foto profil di MongoDB
-            const updatedUser = await User.findByIdAndUpdate(
-              id,
-              { profileImage: result.secure_url },
-              { new: true }
-            );
-            res.json(updatedUser);
+            try {
+              // Mengupdate foto profil dan data lainnya di MongoDB
+              const updatedUser = await User.findByIdAndUpdate(
+                id,
+                {
+                  profileImage: result.secure_url,
+                  namaLengkap,
+                  jenisKelamin,
+                  noHp,
+                  email,
+                  bio,
+                },
+                { new: true }
+              );
+              res.json(updatedUser);
+            } catch (updateError) {
+              console.error(updateError);
+              res.status(500).json({ error: "Internal Server Error" });
+            }
           }
         })
         .end(req.file.buffer);
@@ -30,6 +44,7 @@ module.exports = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
   getAllUser: async (req, res) => {
     try {
       const users = await User.find();
@@ -57,29 +72,7 @@ module.exports = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
-  updateProfile: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { namaLengkap, jenisKelamin, noHp, email, bio } = req.body;
-      const updateData = {
-        namaLengkap,
-        jenisKelamin,
-        noHp,
-        email,
-        bio,
-      };
-      const users = await User.findByIdAndUpdate(id, updateData, {
-        new: true,
-      });
-      res.json({
-        message: "data berhasil diedit berdasarkan id",
-        users,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
+
   deleteUserById: async (req, res) => {
     try {
       const { id } = req.params;
