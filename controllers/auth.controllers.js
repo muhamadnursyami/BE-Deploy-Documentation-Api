@@ -40,6 +40,13 @@ module.exports = {
         message: "Berhasil Login!",
         token,
         role: result.role,
+        id: result._id,
+        email: result.email,
+        nama: result.nama,
+        jenisKelamin: result.jenisKelamin,
+        profileImage: result.profileImage,
+        bio: result.bio,
+        noHp: result.noHp,
       });
     } catch (error) {
       console.log(error);
