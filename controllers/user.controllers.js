@@ -1,44 +1,58 @@
 require("dotenv").config();
 const User = require("../models/user");
-
 const cloudinary = require("../utils/cloudinary");
-
 module.exports = {
   updateProfile: async (req, res) => {
     try {
       const { id } = req.params;
-      const { namaLengkap, jenisKelamin, noHp, email, bio, profileImage } =
-        req.body;
+      const { nama, jenisKelamin, noHp, email, bio } = req.body;
 
-      // Mengunggah file baru ke Cloudinary
-      const result = await cloudinary.uploader
-        .upload_stream({ resource_type: "auto" }, async (error, result) => {
-          if (error) {
-            console.error(error);
-            res.status(500).json({ error: "Internal Server Error" });
-          } else {
-            try {
-              // Mengupdate foto profil dan data lainnya di MongoDB
-              const updatedUser = await User.findByIdAndUpdate(
-                id,
-                {
-                  profileImage: result.secure_url,
-                  namaLengkap,
-                  jenisKelamin,
-                  noHp,
-                  email,
-                  bio,
-                },
-                { new: true }
-              );
-              res.json(updatedUser);
-            } catch (updateError) {
-              console.error(updateError);
+      // Check if there is a file in the request
+      if (req.file) {
+        // If there is a file, upload it to Cloudinary and include the result in the update
+        const result = await cloudinary.uploader
+          .upload_stream({ resource_type: "auto" }, async (error, result) => {
+            if (error) {
+              console.error(error);
               res.status(500).json({ error: "Internal Server Error" });
+            } else {
+              try {
+                // Mengupdate foto profil dan data lainnya di MongoDB
+                const updatedUser = await User.findByIdAndUpdate(
+                  id,
+                  {
+                    profileImage: result.secure_url,
+                    nama,
+                    jenisKelamin,
+                    noHp,
+                    email,
+                    bio,
+                  },
+                  { new: true }
+                );
+                res.json(updatedUser);
+              } catch (updateError) {
+                console.error(updateError);
+                res.status(500).json({ error: "Internal Server Error" });
+              }
             }
-          }
-        })
-        .end(req.file.buffer);
+          })
+          .end(req.file.buffer);
+      } else {
+        // If there is no file, update only the other fields
+        const updatedUser = await User.findByIdAndUpdate(
+          id,
+          {
+            nama,
+            jenisKelamin,
+            noHp,
+            email,
+            bio,
+          },
+          { new: true }
+        );
+        res.json(updatedUser);
+      }
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });

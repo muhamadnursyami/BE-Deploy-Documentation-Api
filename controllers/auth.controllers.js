@@ -40,7 +40,7 @@ module.exports = {
         message: "Berhasil Login!",
         token,
         role: result.role,
-        id: result._id,
+        _id: result._id,
         email: result.email,
         nama: result.nama,
         jenisKelamin: result.jenisKelamin,
