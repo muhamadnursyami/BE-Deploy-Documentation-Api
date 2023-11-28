@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const { format } = require("date-fns");
 const videoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -12,15 +12,24 @@ const videoSchema = new mongoose.Schema({
   },
   likes: {
     type: String,
+    default: "",
   },
   rating: {
     type: String,
+    default: "⭐⭐⭐⭐⭐",
   },
   category: {
     type: String,
   },
   tanggal_upload: {
-    type: String,
+    type: Date,
+    default: Date.now,
+    set: function (value) {
+      return new Date(value);
+    },
+    get: function (value) {
+      return format(value, "MMM dd, yyyy");
+    },
   },
   url_thumbnail: {
     type: String,
@@ -30,6 +39,14 @@ const videoSchema = new mongoose.Schema({
   },
   url_unduh: {
     type: String,
+  },
+  donaturId: {
+    type: mongoose.ObjectId,
+    ref: "Donasi",
+  },
+  status: {
+    type: Boolean,
+    default: false,
   },
 });
 
