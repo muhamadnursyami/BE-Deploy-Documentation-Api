@@ -5,6 +5,7 @@ const videoRoutes = require("./videoRoutes");
 const bookRoutes = require("./bukuRoutes");
 const authRoutes = require("./authRoutes");
 const userRoutes = require("./userRoutes");
+const donasiRoutes = require("./donasiRoutes");
 route.get("/", (req, res) => {
   const htmlResponse = `
   <!DOCTYPE html>
@@ -69,4 +70,5 @@ route.use("/videos", videoRoutes);
 route.use("/books", bookRoutes);
 route.use("/auth", authRoutes);
 route.use("/users", userRoutes);
+route.use("/donasi", donasiRoutes);
 module.exports = route;
