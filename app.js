@@ -35,6 +35,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // ROUTES
 app.use(allRoutes);
+
 // RUN SERVER
 app.listen(PORT, () => {
   console.log(`Server Running on PORT ${PORT}`);
