@@ -1,5 +1,6 @@
 const express = require("express");
 const route = express.Router();
+const transactionRoutes = require("./midtransRoutes");
 const uploadRoutes = require("./uploadRoutes");
 const videoRoutes = require("./videoRoutes");
 const bookRoutes = require("./bukuRoutes");
@@ -64,6 +65,7 @@ route.get("/", (req, res) => {
   res.send(htmlResponse);
 });
 
+route.use("/transactions", transactionRoutes);
 route.use("/uploads", uploadRoutes);
 route.use("/videos", videoRoutes);
 route.use("/books", bookRoutes);
