@@ -20,12 +20,7 @@ route.get("/:id", getUserById);
 //   ,
 //   editProfileImage
 // );
-route.put(
-  "/edit-profile/:id",
-  upload.single("profileImage"),
-  verifyToken,
-  updateProfile
-);
+route.put("/edit-profile/:id", upload.single("profileImage"), updateProfile);
 route.delete("/:id", deleteUserById);
 route.delete("/", deleteAllUser);
 
