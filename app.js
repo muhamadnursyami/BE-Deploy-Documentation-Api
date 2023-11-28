@@ -20,6 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ROUTES
 app.use(allRoutes);
+
 // RUN SERVER
 app.listen(PORT, () => {
   console.log(`Server Running on PORT ${PORT}`);

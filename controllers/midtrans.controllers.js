@@ -1,4 +1,4 @@
-const db = require("../models/index.js");
+const db = require("../config/db");
 const Transaksi = db.transaksi;
 const { coreApi } = require("../utils/midtrans");
 const midtransClient = require("midtrans-client");

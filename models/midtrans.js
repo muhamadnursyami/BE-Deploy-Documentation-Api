@@ -1,13 +1,22 @@
-// model-mongoose.js
 const mongoose = require('mongoose');
 
 const transaksiSchema = new mongoose.Schema({
-  order_id: String,
-  nama: String,
-  response_midtrans: String,
-  transaction_status: String,
+  order_id: {
+    type: String,
+    required: true,
+  },
+  nama: {
+    type: String,
+    required: true,
+  },
+  response_midtrans: {
+    type: String,
+  },
+  transaction_status: {
+    type: String,
+  },
 });
 
-const TransaksiMongoose = mongoose.model('Transaksi', transaksiSchema);
+module.exports = mongoose.model('Transaksi', transaksiSchema);
 
-module.exports = TransaksiMongoose;
+// module.exports = mongoose.model("User", userSchema);
