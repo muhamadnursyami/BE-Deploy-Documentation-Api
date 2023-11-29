@@ -8,6 +8,7 @@ const bookRoutes = require("./bukuRoutes");
 const authRoutes = require("./authRoutes");
 const userRoutes = require("./userRoutes");
 const donasiRoutes = require("./donasiRoutes");
+const bookmarkRoutes = require("./bookmarkRoutes");
 route.get("/", (req, res) => {
   const htmlResponse = `
   <!DOCTYPE html>
@@ -67,7 +68,7 @@ route.get("/", (req, res) => {
   res.send(htmlResponse);
 });
 
-route.use("/success", successRoutes)
+route.use("/success", successRoutes);
 route.use("/transactions", transactionRoutes);
 route.use("/uploads", uploadRoutes);
 route.use("/videos", videoRoutes);
@@ -75,4 +76,5 @@ route.use("/books", bookRoutes);
 route.use("/auth", authRoutes);
 route.use("/users", userRoutes);
 route.use("/donasi", donasiRoutes);
+route.use("/bookmark", bookmarkRoutes);
 module.exports = route;
