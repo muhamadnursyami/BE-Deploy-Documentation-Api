@@ -4,6 +4,8 @@ const Donasi = require("../models/donasi");
 const R2 = require("aws-sdk");
 const cloudinary = require("../utils/cloudinary");
 // const upload = require("../utils/multer");
+const mongoose = require("mongoose");
+// const ObjectId = mongoose.Types.ObjectId;
 
 module.exports = {
   donasiVideo: async (req, res) => {
@@ -138,6 +140,31 @@ module.exports = {
         message: "Book donation failed",
         data: error,
       });
+    }
+  },
+
+  totalDonasiByUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const result = await Donasi.aggregate([
+        {
+          $match: {
+            userID: mongoose.Types.ObjectId.createFromHexString(id),
+          },
+        },
+        {
+          $group: {
+            _id: "$userID",
+            total_donasi: { $sum: 1 },
+          },
+        },
+      ]).exec();
+
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message);
     }
   },
 };
