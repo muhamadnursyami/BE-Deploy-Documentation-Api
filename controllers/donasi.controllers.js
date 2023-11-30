@@ -167,4 +167,27 @@ module.exports = {
       res.status(500).send(error.message);
     }
   },
+
+  totalDonasiVideo: async (req, res) => {
+    try {
+      const result = await Donasi.aggregate([
+        {
+          $match: {
+            videoID: { $exists: true, $ne: null },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total_donasi_video: { $sum: 1 },
+          },
+        },
+      ]).exec();
+
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message);
+    }
+  },
 };
