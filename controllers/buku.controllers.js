@@ -23,7 +23,7 @@ module.exports = {
         Key: bookKey,
         ContentType: req.files.book_url[0].mimetype,
       }).promise();
-
+      
       // Upload image file
       let imgKey = Math.round(Math.random() * 99999999999999).toString();
       const imgUrl = publicBucketUrl + imgKey;

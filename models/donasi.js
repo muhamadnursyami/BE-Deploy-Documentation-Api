@@ -5,7 +5,7 @@ const donasiSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  bukuID: {
+  bookID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Book",
   },

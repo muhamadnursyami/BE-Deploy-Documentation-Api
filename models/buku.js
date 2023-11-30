@@ -30,6 +30,14 @@ const bookSchema = new mongoose.Schema({
   category: {
     type: String,
   },
+  donaturId: {
+    type: mongoose.ObjectId,
+    ref: "Donasi",
+  },
+  status: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Book", bookSchema);

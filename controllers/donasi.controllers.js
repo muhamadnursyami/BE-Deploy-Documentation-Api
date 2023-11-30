@@ -121,7 +121,7 @@ module.exports = {
       const savedBuku = await buku.save();
 
       const donasi = new Donasi({
-        bukuID: savedBuku._id,
+        bookID: savedBuku._id,
         userID: id,
       });
 
@@ -157,6 +157,29 @@ module.exports = {
           $group: {
             _id: "$userID",
             total_donasi: { $sum: 1 },
+          },
+        },
+      ]).exec();
+
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message);
+    }
+  },
+
+  totalDonasiVideo: async (req, res) => {
+    try {
+      const result = await Donasi.aggregate([
+        {
+          $match: {
+            videoID: { $exists: true, $ne: null },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total_donasi_video: { $sum: 1 },
           },
         },
       ]).exec();
