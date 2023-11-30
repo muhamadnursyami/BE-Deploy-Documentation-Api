@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { ObjectId } = require("mongodb");
 const Bookmark = require("../models/bookmark");
 
 module.exports = {
@@ -60,6 +61,37 @@ module.exports = {
       const totalBookmarks = await Bookmark.countDocuments({ userID: id });
 
       res.status(200).json({ success: true, totalBookmarks: totalBookmarks });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan server" });
+    }
+  },
+  getBookmarkByUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      let userId;
+      try {
+        userId = new ObjectId(id);
+      } catch (error) {
+        return res.status(400).json({ message: "Invalid user ID." });
+      }
+
+      // Get the bookmarks for the user
+      const userBookmarks = await Bookmark.find({ userID: userId });
+
+      if (userBookmarks.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No bookmarks found for the user." });
+      }
+
+      // Combine both books and videos into a single array
+      const allBookmarks = userBookmarks.filter(
+        (bookmark) => !!bookmark.bookID || !!bookmark.videoID
+      );
+
+      res.status(200).json(allBookmarks);
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ error: "Terjadi kesalahan server" });
