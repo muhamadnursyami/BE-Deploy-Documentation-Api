@@ -1,8 +1,9 @@
 const db = require("../config/db");
 const Transaksi = db.transaksi;
 const { coreApi } = require("../utils/midtrans");
-const midtransClient = require("midtrans-client");
+const cron = require("node-cron");
 const mongoose = require("mongoose");
+const midtransClient = require("midtrans-client");
 const ObjectId = mongoose.Types.ObjectId;
 const Donation = require("../models/midtrans");
 
@@ -28,6 +29,9 @@ exports.midtransChargeTransaction = async (req, res) => {
       phone,
       donation_amount,
       note,
+      transaction_id: null,
+      response_midtrans: null,
+      transaction_status: "Butuh update",
     });
 
     // Menyimpan data donasi ke MongoDB
@@ -56,22 +60,86 @@ exports.midtransChargeTransaction = async (req, res) => {
     };
 
     // Melakukan charge transaksi ke server Midtrans
-    snap.createTransaction(parameter).then(async (transaction) => {
-      // Menyimpan response_midtrans dan transaction_status ke objek donasi
-      donationData.response_midtrans = transaction.token;
-      donationData.transaction_status = transaction.transaction_status;
+    const transaction = await snap.createTransaction(parameter);
 
-      // Menyimpan data donasi ke MongoDB
-      const savedDonation = await donationData.save();
+    // Menyimpan Transaction ID ke objek donasi di MongoDB
+    donationData.transaction_id = transaction.transaction_id;
+    donationData.response_midtrans = JSON.stringify(transaction);
+    await donationData.save();
 
-      return res.status(201).json({
-        success: true,
-        message: "Berhasil melakukan charge transaksi!",
-        data: transaction,
-      });
+    console.log("Transaction ID:", transaction.transaction_id);
+
+    // Schedule cron job untuk memperbarui status transaksi setiap 10 menit
+    cron.schedule('0 * * * *', async () => {
+      try {
+        console.log('Cron job is running...');
+        const updatedTransactionStatus = await getTransactionStatusFromMidtrans(donationData.transaction_id);
+        
+        // Update donationData with the latest transaction status
+        donationData.transaction_status = updatedTransactionStatus.status;
+        // Update previous_transaction_id with the current transaction_id
+        donationData.previous_transaction_id = donationData.transaction_id;
+        // Update transaction_id with the latest transaction_id
+        donationData.transaction_id = updatedTransactionStatus.transaction_id;
+        // Update last_updated_at with the current timestamp
+        let now = new Date();
+        donationData.last_updated_at = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false });
+        
+        // Save updated donationData to MongoDB
+        await donationData.save();
+    
+        console.log(`Transaction status updated: ${donationData.transaction_status}`);
+      } catch (cronError) {
+        console.error('Error updating transaction status:', cronError.message);
+      }
+    });
+    
+
+    return res.status(201).json({
+      success: true,
+      message: "Berhasil melakukan charge transaksi!",
+      data: transaction,
     });
   } catch (error) {
-    // Menangani kesalahan dan memberikan respons server error
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Controller untuk mendapatkan status transaksi dari Midtrans
+const getTransactionStatusFromMidtrans = async (order_id) => {
+  return new Promise((resolve, reject) => {
+    let core = new midtransClient.CoreApi({
+      isProduction: false,
+      serverKey: process.env.SERVER_KEY,
+    });
+
+    core.transaction.status(order_id).then((transactionStatus) => {
+      resolve(transactionStatus);
+    }).catch((error) => {
+      reject(error);
+    });
+  });
+};
+
+exports.getTransactionStatus = async (req, res) => {
+  try {
+    const { order_id } = req.params;
+
+    if (!order_id) {
+      return res.status(400).json({
+        success: false,
+        message: "No order_id in the request.",
+      });
+    }
+
+    const transactionStatus = await getTransactionStatusFromMidtrans(order_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Transaction status retrieved successfully!",
+      data: transactionStatus,
+    });
+  } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };

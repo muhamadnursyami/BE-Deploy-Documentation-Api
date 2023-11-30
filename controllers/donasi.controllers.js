@@ -1,11 +1,14 @@
 const Video = require("../models/video");
 const Buku = require("../models/buku");
+const Uang = require("../models/midtrans");
 const Donasi = require("../models/donasi");
 const R2 = require("aws-sdk");
 const cloudinary = require("../utils/cloudinary");
 // const upload = require("../utils/multer");
 const mongoose = require("mongoose");
-// const ObjectId = mongoose.Types.ObjectId;
+const cron = require("node-cron");
+const midtransClient = require("midtrans-client");
+const ObjectId = mongoose.Types.ObjectId;
 
 module.exports = {
   donasiVideo: async (req, res) => {
@@ -157,6 +160,102 @@ module.exports = {
       });
     }
   },
+
+  donasiUang: async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const { full_name, email, phone, donation_amount, note } = req.body;
+  
+      if (!full_name || !email || !phone || !donation_amount) {
+        return res.status(400).json({
+          success: false,
+          message: "Terdapat kolom yang kosong dalam permintaan.",
+        });
+      }
+  
+      const uang = new Uang({
+        order_id: new ObjectId(), // Membuat ObjectId baru untuk order_id
+        full_name,
+        email,
+        phone,
+        donation_amount,
+        note,
+        transaction_id: null,
+        response_midtrans: null,
+        transaction_status: "Butuh update",
+      });
+  
+      const savedUang = await uang.save();
+      console.log("Berhasil menyimpan data donasi uang:", savedUang);
+  
+      const donasi = new Donasi({
+        uangID: savedUang._id,
+        userID: id,
+      });
+  
+      const savedDonasi = await donasi.save();
+  
+      savedUang.donaturId = savedDonasi._id;
+      await savedUang.save();
+  
+      let snap = new midtransClient.Snap({
+        isProduction: false,
+        serverKey: process.env.SERVER_KEY,
+      });
+  
+      let parameter = {
+        transaction_details: {
+          order_id: savedUang._id.toString(),
+          gross_amount: donation_amount,
+        },
+        credit_card: {
+          secure: true,
+        },
+        customer_details: {
+          first_name: full_name,
+          email,
+          phone,
+        },
+      };
+  
+      const transaction = await snap.createTransaction(parameter);
+  
+      savedUang.transaction_id = transaction.transaction_id;
+      savedUang.response_midtrans = JSON.stringify(transaction);
+      await savedUang.save();
+  
+      console.log("Transaction ID:", transaction.transaction_id);
+  
+      // Menggunakan try-catch dan await untuk menangani error dan memberhentikan cron job jika terjadi kesalahan
+      try {
+        const cronJob = await cron.schedule('0 * * * *', async () => {
+          console.log('Cron job is running...');
+          const updatedTransactionStatus = await getTransactionStatusFromMidtrans(savedUang.transaction_id);
+  
+          savedUang.transaction_status = updatedTransactionStatus.status;
+          savedUang.previous_transaction_id = savedUang.transaction_id;
+          savedUang.transaction_id = updatedTransactionStatus.transaction_id;
+          let now = new Date();
+          savedUang.last_updated_at = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false });
+  
+          await savedUang.save();
+  
+          console.log(`Transaction status updated: ${savedUang.transaction_status}`);
+        });
+      } catch (cronError) {
+        console.error('Error scheduling cron job:', cronError.message);
+      }
+  
+      return res.status(201).json({
+        success: true,
+        message: "Berhasil melakukan charge transaksi!",
+        data: transaction,
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },  
 
   totalDonasiByUser: async (req, res) => {
     try {

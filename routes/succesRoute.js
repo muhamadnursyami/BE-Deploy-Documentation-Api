@@ -8,6 +8,7 @@ router.get("/", (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="refresh" content="5;url=http://localhost:5173/halaman-donasi/donasi-uang/payment"> <!-- Tambahkan baris ini -->
         <title>Donasi Berhasil</title>
         <style>
           body {
@@ -43,6 +44,12 @@ router.get("/", (req, res) => {
         <h1>Terima Kasih Atas Donasi Anda!</h1>
         <p class="emoji">🎉</p>
         <p>Kontribusi murah hati Anda akan menciptakan dampak yang luar biasa. Kami sangat menghargai dukungan Anda.</p>
+
+        <script>
+          setTimeout(() => {
+            alert("Anda Akan segera diarahkan ke halaman sebelumnya");
+          }, 3000);
+        </script>
       </body>
     </html>
   `;

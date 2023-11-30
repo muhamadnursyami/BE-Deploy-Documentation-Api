@@ -11,5 +11,13 @@ router.use(function (req, res, next) {
 });
 
 router.post("/", controller.midtransChargeTransaction);
+router.get('/config', (req, res) => {
+  res.json({
+    clientKey: process.env.CLIENT_KEY
+  });
+});
+
+router.get('/status/:order_id', controller.getTransactionStatus);
+
 
 module.exports = router;
