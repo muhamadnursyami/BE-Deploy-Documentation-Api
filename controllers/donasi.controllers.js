@@ -73,7 +73,7 @@ module.exports = {
 
   donasiBuku: async (req, res) => {
     const { id } = req.params;
-
+  
     try {
       const publicBucketUrl = process.env.R2_PUBLIC_BUCKET_URL;
       const D2 = new R2.S3({
@@ -84,27 +84,36 @@ module.exports = {
           secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
         },
       });
-
-      // Upload book file
-      let bookKey = Math.round(Math.random() * 99999999999999).toString();
-      const bookUrl = publicBucketUrl + bookKey;
-      await D2.upload({
+  
+      // Generate random keys for book and image
+      const bookKey = Math.round(Math.random() * 99999999999999).toString();
+      const imgKey = Math.round(Math.random() * 99999999999999).toString();
+  
+      // Promises for book and image uploads
+      const uploadBookPromise = D2.upload({
         Body: req.files.book_url[0].buffer,
         Bucket: process.env.R2_BUCKET_NAME,
         Key: bookKey,
         ContentType: req.files.book_url[0].mimetype,
       }).promise();
-
-      // Upload image file
-      let imgKey = Math.round(Math.random() * 99999999999999).toString();
-      const imgUrl = publicBucketUrl + imgKey;
-      await D2.upload({
+  
+      const uploadImgPromise = D2.upload({
         Body: req.files.img_url[0].buffer,
         Bucket: process.env.R2_BUCKET_NAME,
         Key: imgKey,
         ContentType: req.files.img_url[0].mimetype,
       }).promise();
-
+  
+      // Wait for both uploads to complete
+      const [bookUploadResult, imgUploadResult] = await Promise.all([
+        uploadBookPromise,
+        uploadImgPromise,
+      ]);
+  
+      const bookUrl = publicBucketUrl + bookKey;
+      const imgUrl = publicBucketUrl + imgKey;
+  
+      // Create a new book instance
       let buku = new Buku({
         title: req.body.title,
         description: req.body.description,
@@ -117,25 +126,31 @@ module.exports = {
         download_url: bookUrl,
         category: req.body.category,
       });
-
+  
+      // Save the book instance
       const savedBuku = await buku.save();
-
+  
+      // Create a new donation instance
       const donasi = new Donasi({
         bookID: savedBuku._id,
         userID: id,
       });
-
+  
+      // Save the donation instance
       const savedDonasi = await donasi.save();
-
+  
+      // Update the donaturId in the saved book instance
       savedBuku.donaturId = savedDonasi._id;
       await savedBuku.save();
-
+  
+      // Respond with success message and data
       res.json({
         message: "Book donation successful",
         data: buku,
       });
     } catch (error) {
       console.log(error);
+      // Respond with an error message and data
       res.json({
         message: "Book donation failed",
         data: error,
