@@ -326,4 +326,38 @@ module.exports = {
       res.status(500).send(error.message);
     }
   },
+
+  totalDonasiUang: async (req, res) => {
+    try {
+      const result = await Donasi.aggregate([
+        {
+          $match: {
+            uangID: { $exists: true, $ne: null },
+          },
+        },
+        {
+          $lookup: {
+            from: 'transactions',  // Ganti dengan nama koleksi transactions sesuai nama koleksi di database Anda
+            localField: 'uangID',
+            foreignField: '_id',
+            as: 'transactionData',
+          },
+        },
+        {
+          $unwind: '$transactionData',  // Memisahkan dokumen yang digabungkan
+        },
+        {
+          $group: {
+            _id: null,
+            total_nominal_donasi_uang: { $sum: '$transactionData.donation_amount' },
+          },
+        },
+      ]).exec();
+  
+      res.json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message);
+    }
+  },
 };

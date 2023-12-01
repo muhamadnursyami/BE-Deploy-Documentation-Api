@@ -113,6 +113,50 @@ module.exports = {
       res.status(500).send(error.message);
     }
   },
+
+  resetPassword: async (req, res) => {
+    try {
+        const { email, newPassword, confirmPassword } = req.body;
+
+        if (!email || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                message: "Tolong isi semua inputan",
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                message: "Password baru dan konfirmasi password harus sama",
+            });
+        }
+
+        if (newPassword.length <= 7 && confirmPassword.length <= 7) {
+            return res.status(400).json({
+                message: "Password harus minimal 8 karakter",
+            });
+        }
+
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(400).json({
+                message: "Email tidak terdaftar!",
+            });
+        }
+
+        const hashPassword = bcrypt.hashSync(newPassword, 10);
+
+        user.password = hashPassword;
+        await user.save();
+
+        res.status(200).json({
+            message: "Reset password berhasil",
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error.message);
+    }
+},
+
   // loginAdmin: async (req, res) => {
   //   try {
   //     const { email, password } = req.body;
