@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000", // Change this according to your server configuration
+        url: "https://fantastic-clam-tam.cyclic.app", // Change this according to your server configuration
       },
     ],
   },
